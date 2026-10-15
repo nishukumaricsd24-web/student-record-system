@@ -20,6 +20,8 @@ def create_table():
             )
         """)
         conn.commit()
+    except sqlite3.Error as e:
+        print(f"Database error while creating table: {e}")
     finally:
         conn.close()
 
@@ -35,7 +37,7 @@ def add_student(student):
         return True, "Student added successfully!"
     except sqlite3.IntegrityError:
         return False, f"Error: Student with Roll Number {student.roll_number} already exists!"
-    except Exception as e:
+    except sqlite3.Error as e:
         return False, f"Database Error: {e}"
     finally:
         conn.close()
@@ -47,6 +49,9 @@ def get_all_students():
         cursor.execute("SELECT roll_no, name, course, marks FROM students")
         rows = cursor.fetchall()
         return rows
+    except sqlite3.Error as e:
+        print(f"Database error while fetching: {e}")
+        return []
     finally:
         conn.close()
 
@@ -57,19 +62,37 @@ def search_student(roll_number):
         cursor.execute("SELECT roll_no, name, course, marks FROM students WHERE roll_no = ?", (roll_number,))
         row = cursor.fetchone()
         return row
+    except sqlite3.Error as e:
+        print(f"Database error while searching: {e}")
+        return None
     finally:
         conn.close()
 
-def update_student(roll_number, name, course, marks):
+def update_student(old_roll_number, name, course, marks, new_roll_number=None):
+    """
+    Update student. Supports changing roll number with duplicate check.
+    If new_roll_number is None or same as old, roll_no is not changed.
+    """
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("UPDATE students SET name = ?, course = ?, marks = ? WHERE roll_no = ?",
-                       (name, course, marks, roll_number))
+        # If roll number is being changed, check for duplicate
+        if new_roll_number is not None and new_roll_number != old_roll_number:
+            cursor.execute("SELECT 1 FROM students WHERE roll_no = ?", (new_roll_number,))
+            if cursor.fetchone():
+                return False, f"Error: Roll Number {new_roll_number} already assigned to another student!"
+
+        # Use new roll if provided, else keep old
+        final_roll = new_roll_number if new_roll_number is not None else old_roll_number
+
+        cursor.execute("UPDATE students SET roll_no = ?, name = ?, course = ?, marks = ? WHERE roll_no = ?",
+                       (final_roll, name, course, marks, old_roll_number))
         conn.commit()
         if cursor.rowcount == 0:
-            return False, f"Student with Roll Number {roll_number} not found!"
+            return False, f"Student with Roll Number {old_roll_number} not found!"
         return True, "Student record updated successfully!"
+    except sqlite3.Error as e:
+        return False, f"Database Error: {e}"
     finally:
         conn.close()
 
@@ -82,5 +105,7 @@ def delete_student(roll_number):
         if cursor.rowcount == 0:
             return False, f"Student with Roll Number {roll_number} not found!"
         return True, "Student deleted successfully!"
+    except sqlite3.Error as e:
+        return False, f"Database Error: {e}"
     finally:
         conn.close()
