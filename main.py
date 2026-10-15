@@ -1,10 +1,7 @@
 # main.py - Menu driven Student Record Management System
 import math
-
 from student import Student
-
-students = []
-
+import database
 
 def add_student():
     """Add a new student with all validations."""
@@ -18,11 +15,6 @@ def add_student():
     except ValueError:
         print("Error: Roll number must be a number!")
         return
-
-    for student in students:
-        if student.roll_number == roll_number:
-            print(f"Error: Student with Roll Number {roll_number} already exists!")
-            return
 
     name = input("Enter Name: ").strip()
     if not name:
@@ -43,19 +35,22 @@ def add_student():
         print("Error: Marks must be a number!")
         return
 
-    students.append(Student(roll_number, name, course, marks))
-    print("Student added successfully!")
+    student = Student(roll_number, name, course, marks)
+    success, message = database.add_student(student)
+    print(message)
 
 
 def view_all_students():
     """Display all student records."""
     print("\n--- View All Students ---")
-    if not students:
+    rows = database.get_all_students()
+    if not rows:
         print("No student records found!")
         return
 
-    print(f"Total Students: {len(students)}\n")
-    for student in students:
+    print(f"Total Students: {len(rows)}\n")
+    for row in rows:
+        student = Student(row[0], row[1], row[2], row[3])
         student.display()
 
 
@@ -68,13 +63,13 @@ def search_student():
         print("Error: Please enter a valid numeric roll number!")
         return
 
-    for student in students:
-        if student.roll_number == roll_number:
-            print("Student Found:\n")
-            student.display()
-            return
-
-    print(f"Student with Roll Number {roll_number} not found!")
+    row = database.search_student(roll_number)
+    if row:
+        print("Student Found:\n")
+        student = Student(row[0], row[1], row[2], row[3])
+        student.display()
+    else:
+        print(f"Student with Roll Number {roll_number} not found!")
 
 
 def update_student():
@@ -86,14 +81,12 @@ def update_student():
         print("Error: Please enter a valid numeric roll number!")
         return
 
-    found_student = next(
-        (student for student in students if student.roll_number == roll_number),
-        None,
-    )
-    if found_student is None:
+    row = database.search_student(roll_number)
+    if row is None:
         print(f"Student with Roll Number {roll_number} not found!")
         return
 
+    found_student = Student(row[0], row[1], row[2], row[3])
     print("Found student. Leave blank and press Enter to keep existing value.\n")
     found_student.display()
 
@@ -116,7 +109,8 @@ def update_student():
         except ValueError:
             print("Error: Invalid marks! Marks not updated.")
 
-    print("Student record updated successfully!")
+    success, message = database.update_student(found_student.roll_number, found_student.name, found_student.course, found_student.marks)
+    print(message)
 
 
 def delete_student():
@@ -128,25 +122,27 @@ def delete_student():
         print("Error: Please enter a valid numeric roll number!")
         return
 
-    for index, student in enumerate(students):
-        if student.roll_number == roll_number:
-            print("Student Found:\n")
-            student.display()
-            confirm = input(
-                f"Are you sure you want to delete Roll No {roll_number}? (y/n): "
-            ).strip().lower()
-            if confirm in ("y", "yes"):
-                students.pop(index)
-                print("Student deleted successfully!")
-            else:
-                print("Deletion cancelled.")
-            return
-
-    print(f"Student with Roll Number {roll_number} not found!")
+    row = database.search_student(roll_number)
+    if row is None:
+        print(f"Student with Roll Number {roll_number} not found!")
+        return
+    
+    student = Student(row[0], row[1], row[2], row[3])
+    print("Student Found:\n")
+    student.display()
+    confirm = input(f"Are you sure you want to delete Roll No {roll_number}? (y/n): ").strip().lower()
+    if confirm in ("y", "yes"):
+        success, message = database.delete_student(roll_number)
+        print(message)
+    else:
+        print("Deletion cancelled.")
 
 
 def main():
     """Main menu loop."""
+    database.create_table()
+    print("Database initialized successfully. (students.db ready)")
+    
     while True:
         print("\n===== Student Record Management System =====")
         print("1. Add Student")
@@ -176,4 +172,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
