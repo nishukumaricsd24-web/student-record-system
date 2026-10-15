@@ -1,4 +1,4 @@
-# main.py - Menu driven Student Record Management System
+# main.py  file - Menu driven Student Record Management System
 import math
 from student import Student
 import database
@@ -8,6 +8,9 @@ def add_student():
     print("\n--- Add Student ---")
     try:
         roll_input = input("Enter Roll Number: ").strip()
+        if roll_input == "":
+            print("Error: Roll number cannot be empty!")
+            return
         roll_number = int(roll_input)
         if roll_number <= 0:
             print("Error: Roll number must be a positive integer!")
@@ -27,7 +30,11 @@ def add_student():
         return
 
     try:
-        marks = float(input("Enter Marks (0-100): ").strip())
+        marks_input = input("Enter Marks (0-100): ").strip()
+        if marks_input == "":
+            print("Error: Marks cannot be empty!")
+            return
+        marks = float(marks_input)
         if not math.isfinite(marks) or marks < 0 or marks > 100:
             print("Error: Marks must be between 0 and 100!")
             return
@@ -57,8 +64,13 @@ def view_all_students():
 def search_student():
     """Search student by roll number."""
     print("\n--- Search Student ---")
+    roll_input = input("Enter Roll Number to Search: ").strip()
+    # Phase 3: Do not accept empty search query
+    if roll_input == "":
+        print("Error: Search query cannot be empty!")
+        return
     try:
-        roll_number = int(input("Enter Roll Number to Search: ").strip())
+        roll_number = int(roll_input)
     except ValueError:
         print("Error: Please enter a valid numeric roll number!")
         return
@@ -76,7 +88,11 @@ def update_student():
     """Update student details by roll number."""
     print("\n--- Update Student ---")
     try:
-        roll_number = int(input("Enter Roll Number to Update: ").strip())
+        roll_input = input("Enter Roll Number to Update: ").strip()
+        if roll_input == "":
+            print("Error: Roll number cannot be empty!")
+            return
+        roll_number = int(roll_input)
     except ValueError:
         print("Error: Please enter a valid numeric roll number!")
         return
@@ -90,34 +106,65 @@ def update_student():
     print("Found student. Leave blank and press Enter to keep existing value.\n")
     found_student.display()
 
+    # --- PHASE 3: Allow updating roll number with duplicate check ---
+    new_roll_input = input(f"Enter New Roll Number [{found_student.roll_number}]: ").strip()
+    new_roll_number = None  # None means keep old
+    if new_roll_input != "":
+        try:
+            new_roll = int(new_roll_input)
+            if new_roll <= 0:
+                print("Error: Roll number must be a positive integer! Update cancelled.")
+                return
+            new_roll_number = new_roll
+        except ValueError:
+            print("Error: Roll number must be numeric! Update cancelled.")
+            return
+
     new_name = input(f"Enter New Name [{found_student.name}]: ").strip()
     if new_name:
         found_student.name = new_name
+    # else keep existing - already validates empty/spaces rejected
 
     new_course = input(f"Enter New Course [{found_student.course}]: ").strip()
     if new_course:
         found_student.course = new_course
 
+    # Phase 3: Validate marks BEFORE saving, cancel update if invalid
     new_marks_input = input(f"Enter New Marks [{found_student.marks}]: ").strip()
     if new_marks_input:
         try:
             new_marks = float(new_marks_input)
             if not math.isfinite(new_marks) or new_marks < 0 or new_marks > 100:
-                print("Error: Marks must be between 0 and 100! Marks not updated.")
+                print("Error: Marks must be between 0 and 100! Update cancelled.")
+                return  # Do NOT update database when invalid
             else:
                 found_student.marks = new_marks
         except ValueError:
-            print("Error: Invalid marks! Marks not updated.")
+            print("Error: Invalid marks! Update cancelled.")
+            return  # Do NOT update database when invalid
 
-    success, message = database.update_student(found_student.roll_number, found_student.name, found_student.course, found_student.marks)
+    # Validate all updated fields before saving (name/course already checked)
+    # Prevent duplicate roll numbers handled inside database.update_student
+
+    success, message = database.update_student(
+        found_student.roll_number, 
+        found_student.name, 
+        found_student.course, 
+        found_student.marks,
+        new_roll_number=new_roll_number
+    )
     print(message)
 
 
 def delete_student():
     """Delete student by roll number after confirmation."""
     print("\n--- Delete Student ---")
+    roll_input = input("Enter Roll Number to Delete: ").strip()
+    if roll_input == "":
+        print("Error: Roll number cannot be empty!")
+        return
     try:
-        roll_number = int(input("Enter Roll Number to Delete: ").strip())
+        roll_number = int(roll_input)
     except ValueError:
         print("Error: Please enter a valid numeric roll number!")
         return
@@ -153,6 +200,9 @@ def main():
         print("6. Exit")
 
         choice = input("Enter your choice: ").strip()
+        if choice == "":
+            print("Invalid choice! Please enter a number between 1 and 6.")
+            continue
         if choice == "1":
             add_student()
         elif choice == "2":
