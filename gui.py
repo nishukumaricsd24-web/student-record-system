@@ -14,9 +14,9 @@ BLUE_LIGHT = "#EFF6FF"
 BG = "#F1F5F9"
 CARD_BG = "#FFFFFF"
 
-COURSES = ["Diploma in Computer Science", "BCA", "B.Tech", "BBA", "MCA"]
+COURSES = ["Diploma", "BCA", "B.Tech", "BBA", "MCA"]
 COURSE_SECTIONS = {
-    "Diploma in Computer Science": ["A", "B", "C"],
+    "Diploma": ["A", "B", "C"],
     "BCA": ["A", "B", "C"],
     "B.Tech": ["A", "B", "C", "D"],
     "BBA": ["A", "B"],
