@@ -1,79 +1,74 @@
 # Student Record Management System
 
-A simple command-line application built with Python and SQLite to manage student records efficiently.
+A simple application built with Python and SQLite to manage student records efficiently. Available as both CLI and professional Desktop GUI.
 
 ## Features
 
+**Core:**
 - Add new student records
 - View all students
-- Search for a student
-- Update student details
-- Delete student records
-- Validate student inputs
-- Prevent duplicate roll numbers
-- Handle invalid inputs and database errors
-- Store records persistently using SQLite
+- Search by Roll Number OR Name
+- Update student details (including Roll Number with duplicate check)
+- Delete student records with confirmation
+- Validations & duplicate prevention
+- Persistent SQLite storage
+
+**GUI (New in `gui.py`):**
+- Modern dashboard layout with sidebar navigation
+- Header, summary cards (Total Students / Database status)
+- Student form with validation (Roll >0, Name/Course required, Marks 0-100)
+- Tkinter Treeview table with alternating row colors, scrollbar, and auto-refresh
+- Click a row to auto-populate form
+- Search bar for roll number or name (partial match)
+- Confirmation dialogs and success/error popups
+- Resizable window, professional colors & fonts
 
 ## Technologies Used
-
-- Python
-- SQLite
+- Python 3
+- SQLite (students.db)
+- Tkinter (built-in, no extra dependencies)
 - Git and GitHub
-- Visual Studio Code
 
 ## Project Structure
-
-```text
 student-record-system/
-├── main.py
-├── student.py
-├── database.py
+├── main.py # CLI version (unchanged)
+├── student.py # Student class
+├── database.py # SQLite operations (reused by CLI & GUI)
+├── gui.py # NEW: Tkinter GUI application
+├── students.db # Created automatically on first run
 ├── .gitignore
 └── README.md
-```
-
-The `students.db` database file is created locally when the application initializes the database.
-
 ## How to Run
 
-1. Install Python 3.
-2. Clone the repository:
+### Option 1: GUI (Recommended)bash
+python gui.py
+code
 
-   ```bash
-   git clone https://github.com/nishukumaricsd24-web/student-record-system.git
-   ```
+### Option 2: CLI
+bash
+python main.py 
+Both share the same `students.db` - records are interchangeable.
 
-3. Open the project folder in VS Code.
-4. Open the terminal in the project directory.
-5. Run:
-
-   ```bash
-   python main.py
-   ```
-
-## How to Use
-
-Follow the menu displayed in the terminal to add, view, search, update, or delete student records.
-
-Enter valid student details when prompted. The application validates inputs and displays messages for invalid entries.
+## How to Use GUI
+1. Run `python gui.py`
+2. Fill Roll Number, Name, Course, Marks and click **Add Student**
+3. Click any row in the table to edit - change values and click **Update Student** (you can also change Roll Number)
+4. Use search bar above table to search by roll or name, **View All** to reset
+5. Select a row and click **Delete Student** -> confirm with Yes
+6. **Clear Fields** resets the form
 
 ## Database
-
-SQLite is used to store student records locally. Records remain saved when the application closes and restarts.
+SQLite `students.db` with table `students(roll_no INTEGER PRIMARY KEY, name TEXT, course TEXT, marks REAL)`. Uses parameterized queries. Auto-created via `database.create_table()`.
 
 ## Future Improvements
+- Export to CSV
+- Graphical analytics
+- Login authentication
+- 3. Changed Files Summary
 
-- Add a graphical user interface
-- Export student records to CSV
-- Add login and authentication
-- Create a web-based version
 
-## Author
-
-**Name:** Your Name
-
-**GitHub:** https://github.com/nishukumaricsd24-web
-
-## License
-
-This project was created for learning and educational purposes.
+| File | Status | Details |
+|------|--------|---------|
+| gui.py | NEW | Separate GUI file. Reuses database.py and student.py. No duplicate DB or fake data. |
+| README.md | UPDATED | Added GUI documentation and python gui.py command |
+| main.py, student.py, database.py | UNCHANGED | Preserved for CLI compatibility as requested |
